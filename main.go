@@ -108,24 +108,25 @@ func doRequest(method string, url string, body string, headers ...*requestHeader
 	return res, nil
 }
 
-func (app *App) getInterest(project string) (string, error) {
-	interestStr := ""
+func (app *App) getInterestStats(project string) (map[string]int, map[string]int, map[string]int, error) {
 	query := fmt.Sprintf("repos/%s/%s/events", app.GhUsername, project)
 
 	header := &requestHeader{key: "Authorization", value: "bearer " + app.GhToken}
 	resp, err := doRequest("GET", ghRestAPIRoot+query, "", header)
 	if err != nil {
-		return "", err
+		return nil, nil, nil, err
 	}
 
 	respBody, err := ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
 	if err != nil {
-		return "", err
+		return nil, nil, nil, err
+
 	}
 
 	res := []map[string]interface{}{}
 	if err := json.Unmarshal(respBody, &res); err != nil {
-		return "", err
+		return nil, nil, nil, err
+
 	}
 
 	stars := map[string]int{}
@@ -164,17 +165,19 @@ func (app *App) getInterest(project string) (string, error) {
 	header = &requestHeader{key: "Authorization", value: "bearer " + app.GhToken}
 	resp, err = doRequest("GET", ghRestAPIRoot+query, "", header)
 	if err != nil {
-		return "", err
+		return nil, nil, nil, err
+
 	}
 
 	respBody, err = ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
 	if err != nil {
-		return "", err
+		return nil, nil, nil, err
+
 	}
 
 	res2 := map[string]interface{}{}
 	if err := json.Unmarshal(respBody, &res2); err != nil {
-		return "", err
+		return nil, nil, nil, err
 	}
 
 	clonesList := res2["clones"].([]interface{})
@@ -193,10 +196,24 @@ func (app *App) getInterest(project string) (string, error) {
 		}
 	}
 
-	interestStr += fmt.Sprintf("        %s|\n", timelineHeader())
-	interestStr += fmt.Sprintf("Stars:  %s|\n", TimelineCount(stars))
-	interestStr += fmt.Sprintf("Forks:  %s|\n", TimelineCount(forks))
-	interestStr += fmt.Sprintf("Clones: %s|\n", TimelineCount(clones))
+	return stars, forks, clones, nil
+}
+
+func (app *App) getInterest(project string, sparklineDisplay bool) (string, error) {
+	stars, forks, clones, _ := app.getInterestStats(project)
+	interestStr := ""
+
+	if sparklineDisplay {
+		interestStr += fmt.Sprintf("       %s|\n", timelineHeader()) // 1 less space as dodgy alingment hack
+		interestStr += fmt.Sprintf("Stars:  %s\n", timelineCountSparkline(stars, "stars"))
+		interestStr += fmt.Sprintf("Forks:  %s\n", timelineCountSparkline(forks, "forks"))
+		interestStr += fmt.Sprintf("Clones: %s\n", timelineCountSparkline(clones, "clones"))
+	} else {
+		interestStr += fmt.Sprintf("        %s|\n", timelineHeader())
+		interestStr += fmt.Sprintf("Stars:  %s|\n", TimelineCount(stars))
+		interestStr += fmt.Sprintf("Forks:  %s|\n", TimelineCount(forks))
+		interestStr += fmt.Sprintf("Clones: %s|\n", TimelineCount(clones))
+	}
 
 	return interestStr, nil
 }
@@ -265,6 +282,7 @@ func main() {
 	app := cli.NewApp()
 	app.Name = "ghportfolio"
 	app.Usage = "for catching up on the activity and health of your public Github projects"
+	app.EnableBashCompletion = true
 
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
@@ -309,8 +327,11 @@ func main() {
 			Name:    "interest",
 			Aliases: []string{"i"},
 			Usage:   "display historical stats on stars, forks, and clones of a project (90 days max)",
+			Flags: []cli.Flag{
+				cli.BoolFlag{Name: "chart"},
+			},
 			Action: func(c *cli.Context) error {
-				interest, err := driver.getInterest(c.Args().First())
+				interest, err := driver.getInterest(c.Args().First(), c.Bool("chart"))
 				if err != nil {
 					fmt.Println("Failed to get project interest info")
 					fmt.Println(err.Error())
