@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -13,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/olekukonko/tablewriter"
 	"github.com/urfave/cli"
 )
 
@@ -223,15 +225,39 @@ func timeToDateStr(t time.Time) string {
 	return fmt.Sprintf("%d%02d%02d", int(year), int(month), int(day))
 }
 
-func (app *App) getProjects() (string, error) {
+type jsonResp struct {
+	Data struct {
+		User struct {
+			Repositories struct {
+				Edges []map[string]interface{}
+			}
+		}
+	}
+}
+
+func (app *App) getProjectsDataDump() (*jsonResp, error) {
 	query := `
     query {
-      user(login: "thundergolfer") {
-        repositories(first: 50) {
+      user(login: "%s") {
+        repositories(first: 50 privacy:PUBLIC ) {
           edges {
             node {
              	name
               url
+              forkCount
+              stargazers {
+                totalCount
+              }
+              issues(states: [OPEN] first: 10) {
+                  nodes {
+                    number
+                  }
+              }
+              pullRequests(first: 10 states:OPEN) {
+                nodes {
+                  number
+                }
+              }
             }
           }
         }
@@ -239,27 +265,98 @@ func (app *App) getProjects() (string, error) {
     }
   `
 	payload := graphQLRequest{
-		Query:     query,
+		Query:     fmt.Sprintf(query, app.GhUsername),
 		Variables: map[string]interface{}{},
 	}
 
 	body, err := json.Marshal(payload)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	header := &requestHeader{key: "Authorization", value: "bearer " + app.GhToken}
 	resp, err := doRequest("POST", ghGraphQLAPIRoot, string(body), header)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	respBody, err := ioutil.ReadAll(io.LimitReader(resp.Body, 1048576))
 	if err != nil {
+		return nil, err
+	}
+
+	respBodyJSON := &jsonResp{}
+
+	err = json.Unmarshal(respBody, respBodyJSON)
+	if err != nil {
+		return nil, err
+	}
+
+	return respBodyJSON, nil
+}
+
+func (app *App) getPortfolioStats() (string, error) {
+	projectDataJSON, err := app.getProjectsDataDump()
+	if err != nil {
 		return "", err
 	}
 
-	return string(respBody), nil
+	var totalForks, totalStars int
+	repos := projectDataJSON.Data.User.Repositories.Edges
+	for _, r := range repos {
+		node := r["node"].(map[string]interface{})
+		totalForks += int(node["forkCount"].(float64))
+		stargazers := node["stargazers"].(map[string]interface{})
+		totalStars += int(stargazers["totalCount"].(float64))
+	}
+
+	return fmt.Sprintf("Portfolio Stars: %d  Portfolio Forks: %d", totalStars, totalForks), nil
+}
+
+func (app *App) getProjects() (string, error) {
+	respBodyJSON, err := app.getProjectsDataDump()
+	if err != nil {
+		return "", err
+	}
+
+	buf := new(bytes.Buffer)
+	table := tablewriter.NewWriter(buf)
+	table.SetHeader([]string{"Name", "Open Issues", "Open PRs"})
+	repos := respBodyJSON.Data.User.Repositories.Edges
+	for _, r := range repos {
+		node := r["node"].(map[string]interface{})
+
+		var openIssues, openPrs string
+		if hasOpenIssues(node) {
+			openIssues = " ! "
+		} else {
+			openIssues = ""
+		}
+		if hasOpenPRs(node) {
+			openPrs = " ! "
+		} else {
+			openPrs = ""
+		}
+		row := []string{node["name"].(string), openIssues, openPrs}
+		table.Append(row)
+	}
+
+	table.Render()
+	return buf.String(), nil
+}
+
+func hasOpenIssues(node map[string]interface{}) bool {
+	issues := node["issues"].(map[string]interface{})
+	issuesNodes := issues["nodes"].([]interface{})
+
+	return len(issuesNodes) > 0
+}
+
+func hasOpenPRs(node map[string]interface{}) bool {
+	issues := node["pullRequests"].(map[string]interface{})
+	prNodes := issues["nodes"].([]interface{})
+
+	return len(prNodes) > 0
 }
 
 func main() {
@@ -284,34 +381,28 @@ func main() {
 	app.Usage = "for catching up on the activity and health of your public Github projects"
 	app.EnableBashCompletion = true
 
-	app.Flags = []cli.Flag{
-		cli.StringFlag{
-			Name:  "lang",
-			Value: "english",
-			Usage: "language for the greeting",
-		},
-	}
-
-	app.Action = func(c *cli.Context) error {
-		name := "person"
-		if c.NArg() > 0 {
-			name = c.Args().Get(0)
-		}
-		if c.String("lang") == "spanish" {
-			fmt.Println("Hola", name)
-		} else {
-			fmt.Println("Hello", name)
-		}
-		return nil
-	}
-
 	app.Commands = []cli.Command{
+		{
+			Name:    "totals",
+			Aliases: []string{"t"},
+			Usage:   "display overall interest in your profile/portfolio",
+			Action: func(c *cli.Context) error {
+				portfolioStats, err := driver.getPortfolioStats()
+				if err != nil {
+					fmt.Println("Failed to list projects")
+					fmt.Println(err.Error())
+				} else {
+					fmt.Println(portfolioStats)
+				}
+
+				return nil
+			},
+		},
 		{
 			Name:    "list",
 			Aliases: []string{"l"},
 			Usage:   "display all public repos under your profile",
 			Action: func(c *cli.Context) error {
-				fmt.Println("Repos: ", c.Args().First())
 				projectsDetails, err := driver.getProjects()
 				if err != nil {
 					fmt.Println("Failed to list projects")
