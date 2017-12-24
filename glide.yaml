@@ -2,3 +2,6 @@ package: github.com/thundergolfer/ghportfolio
 import:
 - package: github.com/urfave/cli
   version: v1.20.0
+- package: github.com/joliv/spark
+  version: v1.0
+- package: github.com/olekukonko/tablewriter

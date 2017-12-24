@@ -5,7 +5,6 @@ import (
 	"math"
 	"time"
 
-	"github.com/buger/goterm"
 	"github.com/joliv/spark"
 )
 
@@ -50,7 +49,6 @@ func TimelineCount(counts map[string]int) string {
 }
 
 func timelineCountSparkline(counts map[string]int, yAxisName string) string {
-	_ = goterm.NewLineChart(100, 8)
 	curr := time.Now()
 	daysInPast := 0
 	var max, min int

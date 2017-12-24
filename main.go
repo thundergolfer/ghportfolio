@@ -202,9 +202,12 @@ func (app *App) getInterestStats(project string) (map[string]int, map[string]int
 }
 
 func (app *App) getInterest(project string, sparklineDisplay bool) (string, error) {
-	stars, forks, clones, _ := app.getInterestStats(project)
-	interestStr := ""
+	stars, forks, clones, err := app.getInterestStats(project)
+	if err != nil {
+		return "", err
+	}
 
+	interestStr := ""
 	if sparklineDisplay {
 		interestStr += fmt.Sprintf("       %s|\n", timelineHeader()) // 1 less space as dodgy alingment hack
 		interestStr += fmt.Sprintf("Stars:  %s\n", timelineCountSparkline(stars, "stars"))
