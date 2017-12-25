@@ -316,7 +316,7 @@ func (app *App) getPortfolioStats() (string, error) {
 	return fmt.Sprintf("Portfolio Stars: %d  Portfolio Forks: %d", totalStars, totalForks), nil
 }
 
-func (app *App) getProjects() (string, error) {
+func (app *App) getProjects(filter bool) (string, error) {
 	respBodyJSON, err := app.getProjectsDataDump()
 	if err != nil {
 		return "", err
@@ -339,6 +339,10 @@ func (app *App) getProjects() (string, error) {
 			openPrs = " ! "
 		} else {
 			openPrs = ""
+		}
+
+		if filter && (openPrs == "") && (openIssues == "") {
+			continue
 		}
 		row := []string{node["name"].(string), openIssues, openPrs}
 		table.Append(row)
@@ -405,8 +409,11 @@ func main() {
 			Name:    "list",
 			Aliases: []string{"l"},
 			Usage:   "display all public repos under your profile",
+			Flags: []cli.Flag{
+				cli.BoolFlag{Name: "filter"},
+			},
 			Action: func(c *cli.Context) error {
-				projectsDetails, err := driver.getProjects()
+				projectsDetails, err := driver.getProjects(c.Bool("filter"))
 				if err != nil {
 					fmt.Println("Failed to list projects")
 					fmt.Println(err.Error())
