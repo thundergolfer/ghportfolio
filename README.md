@@ -59,6 +59,8 @@ Clones: ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
 
 `go install github.com/thundergolfer/ghportfolio`
 
+You can also download the relevant release for your OS from [`ghportfolio/releases`]( https://github.com/thundergolfer/ghportfolio/releases).
+
 #### Uninstalling
 
 You can just remove the `github.com/thundergolfer/ghportfolio` directory under `$GOPATH/bin/`
