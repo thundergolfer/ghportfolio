@@ -1,6 +1,14 @@
 # ghportfolio
 A minimal CLI in Golang for catching up on the activity and health of your public Github projects
 
+## Why Use It?
+
+After switching to a team that used the Bitbucket ecosystem, I lost touch with the state of my open-source projects as I was no longer arriving at the Github homepage everyday.
+
+I made this small CLI tool to quickly check-up on projects, seeing whether had received any recent interest from other users, or whether there was some issue or code contribution that had popped up on a project without me noticing.
+
+Hope you may also find it useful :)
+
 ## Usage
 
 #### `totals`
