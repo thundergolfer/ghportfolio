@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -19,10 +20,11 @@ import (
 )
 
 const (
-	ghGraphQLAPIRoot   string = "https://api.github.com/graphql"
-	ghRestAPIRoot      string = "https://api.github.com/"
-	ghTokenLocation    string = ".ghportfolio/token"
-	ghUsernameLocation string = ".ghportfolio/username"
+	ghGraphQLAPIRoot      string = "https://api.github.com/graphql"
+	ghRestAPIRoot         string = "https://api.github.com/"
+	appDataFolderLocation string = ".ghportfolio"
+	ghTokenLocation       string = ".ghportfolio/token"
+	ghUsernameLocation    string = ".ghportfolio/username"
 )
 
 type requestHeader struct {
@@ -72,20 +74,94 @@ func getUsername() (string, error) {
 		return "", err
 	}
 
-	if string(dat) == "" {
-		fmt.Println("Github Username is empty. Please run `ghportfolio setup`")
+	return strings.TrimSpace(string(dat)), nil
+}
+
+func fileExistsAndAccesible(path string) bool {
+	if _, err := os.Stat(path); err != nil {
+		if os.IsNotExist(err) {
+			return false
+		} else {
+			// other error
+			return false
+		}
+	}
+	return true
+}
+
+func validateSetup() (bool, error) {
+	usr, err := user.Current()
+	if err != nil {
+		log.Fatal(err)
+		return false, err
+	}
+	if !fileExistsAndAccesible(path.Join(usr.HomeDir, ghTokenLocation)) {
+		return false, err
 	}
 
-	return strings.TrimSpace(string(dat)), nil
+	username, err := getUsername()
+	if err != nil {
+		return false, err
+	}
+	if username == "" {
+		fmt.Println("Github Username is empty. Please run `ghportfolio setup`")
+		return false, nil
+	}
+
+	if !fileExistsAndAccesible(path.Join(usr.HomeDir, ghUsernameLocation)) {
+		return false, err
+	}
+	token, err := getToken()
+	if err != nil {
+		return false, err
+	}
+	if token == "" {
+		fmt.Println("Github Token is empty. Please run `ghportfolio setup`")
+		return false, nil
+	}
+
+	return true, nil
 }
 
 func appSetup() error {
 	usr, err := user.Current()
 	if err != nil {
 		log.Fatal(err)
+		return err
 	}
 
-	_ = usr
+	pth := path.Join(usr.HomeDir, appDataFolderLocation)
+
+	err = os.Mkdir(pth, os.ModeDir)
+	if err != nil {
+		log.Fatal(err)
+		return err
+	}
+
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Print("Enter your Github username: ")
+	text, err := reader.ReadString('\n')
+
+	if err != nil {
+		return err
+	}
+
+	err = ioutil.WriteFile(ghUsernameLocation, []byte(text), 0777)
+	if err != nil {
+		return err
+	}
+
+	reader = bufio.NewReader(os.Stdin)
+	fmt.Print("Enter a Github Access Token (goto 'Settings/Developer settings') with 'user', 'notifications', and 'push' permissions: ")
+	text, err = reader.ReadString('\n')
+	if err != nil {
+		return err
+	}
+
+	err = ioutil.WriteFile(ghTokenLocation, []byte(text), 0777)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -394,6 +470,15 @@ func main() {
 			Aliases: []string{"t"},
 			Usage:   "display overall interest in your profile/portfolio",
 			Action: func(c *cli.Context) error {
+				valid, err := validateSetup()
+				if err != nil {
+					fmt.Println(err.Error())
+					return nil
+				}
+				if !valid {
+					return nil
+				}
+
 				portfolioStats, err := driver.getPortfolioStats()
 				if err != nil {
 					fmt.Println("Failed to list projects")
@@ -413,6 +498,15 @@ func main() {
 				cli.BoolFlag{Name: "filter"},
 			},
 			Action: func(c *cli.Context) error {
+				valid, err := validateSetup()
+				if err != nil {
+					fmt.Println(err.Error())
+					return nil
+				}
+				if !valid {
+					return nil
+				}
+
 				projectsDetails, err := driver.getProjects(c.Bool("filter"))
 				if err != nil {
 					fmt.Println("Failed to list projects")
@@ -432,6 +526,15 @@ func main() {
 				cli.BoolFlag{Name: "chart"},
 			},
 			Action: func(c *cli.Context) error {
+				valid, err := validateSetup()
+				if err != nil {
+					fmt.Println(err.Error())
+					return nil
+				}
+				if !valid {
+					return nil
+				}
+
 				interest, err := driver.getInterest(c.Args().First(), c.Bool("chart"))
 				if err != nil {
 					fmt.Println("Failed to get project interest info")
