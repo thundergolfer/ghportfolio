@@ -57,7 +57,11 @@ Clones: ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
 
 ## Install
 
-`coming soon`
+`go install github.com/thundergolfer/ghportfolio`
+
+#### Uninstalling
+
+You can just remove the `github.com/thundergolfer/ghportfolio` directory under `$GOPATH/bin/`
 
 ## Build
 
