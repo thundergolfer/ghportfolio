@@ -57,7 +57,7 @@ Clones: |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  
 ```
 $ ghportfolio interest --chart google-rules-of-machine-learning
 
-|Mo|Su|Sa|Fr|Th|We|Tu|Mo|Su|Sa|Fr|Th|We|Tu|Mo|Su|Sa|Fr|Th|We|Tu|Mo|Su|Sa|Fr|Th|We|Tu|Mo|Su|
+       |Mo|Su|Sa|Fr|Th|We|Tu|Mo|Su|Sa|Fr|Th|We|Tu|Mo|Su|Sa|Fr|Th|We|Tu|Mo|Su|Sa|Fr|Th|We|Tu|Mo|Su|
 Stars:  ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁██▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁██▁▁▁  min: 0 max: 1
 Forks:  ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁  min: 0 max: 0
 Clones: ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁  min: 0 max: 0
