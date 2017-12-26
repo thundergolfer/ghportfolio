@@ -4,6 +4,9 @@
 *.so
 *.dylib
 
+# goreleases specific release folder
+dist
+
 # CLI tool binary for this project
 ghportfolio
 
