@@ -48,7 +48,7 @@ Shows a timeline of when a particular repository was *Starred*, *Forked*, or *Cl
 ```
 $ ghportfolio interest google-rules-of-machine-learning
 
-|Mo|Su|Sa|Fr|Th|We|Tu|Mo|Su|Sa|Fr|Th|We|Tu|Mo|Su|Sa|Fr|Th|We|Tu|Mo|Su|Sa|Fr|Th|We|Tu|Mo|Su|
+        |Mo|Su|Sa|Fr|Th|We|Tu|Mo|Su|Sa|Fr|Th|We|Tu|Mo|Su|Sa|Fr|Th|We|Tu|Mo|Su|Sa|Fr|Th|We|Tu|Mo|Su|
 Stars:  |  |  |  |  |  | 1| 1|  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  | 1| 1|  |
 Forks:  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 Clones: |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
