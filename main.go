@@ -51,12 +51,7 @@ func getToken() (string, error) {
 	fullTokenPath := path.Join(usr.HomeDir, ghTokenLocation)
 	dat, err := ioutil.ReadFile(fullTokenPath)
 	if err != nil {
-		fmt.Printf("Error: failed to read Github Access Token at: %s\n", fullTokenPath)
 		return "", err
-	}
-
-	if string(dat) == "" {
-		fmt.Println("Github Access Token is empty. Please run `ghportfolio setup`")
 	}
 
 	return strings.TrimSpace(string(dat)), nil
@@ -70,7 +65,6 @@ func getUsername() (string, error) {
 	fullTokenPath := path.Join(usr.HomeDir, ghUsernameLocation)
 	dat, err := ioutil.ReadFile(fullTokenPath)
 	if err != nil {
-		fmt.Printf("Error: failed to read Github Username at: %s\n", fullTokenPath)
 		return "", err
 	}
 
@@ -81,10 +75,9 @@ func fileExistsAndAccesible(path string) bool {
 	if _, err := os.Stat(path); err != nil {
 		if os.IsNotExist(err) {
 			return false
-		} else {
-			// other error
-			return false
 		}
+		// other error
+		return false
 	}
 	return true
 }
@@ -124,6 +117,8 @@ func validateSetup() (bool, error) {
 }
 
 func appSetup() error {
+	fmt.Println("Running Setup")
+	fmt.Println("--------------------------------------")
 	usr, err := user.Current()
 	if err != nil {
 		log.Fatal(err)
@@ -132,10 +127,12 @@ func appSetup() error {
 
 	pth := path.Join(usr.HomeDir, appDataFolderLocation)
 
-	err = os.Mkdir(pth, os.ModeDir)
-	if err != nil {
-		log.Fatal(err)
-		return err
+	if _, err = os.Stat(pth); os.IsNotExist(err) {
+		err = os.Mkdir(pth, 0777)
+		if err != nil {
+			log.Fatal(err)
+			return err
+		}
 	}
 
 	reader := bufio.NewReader(os.Stdin)
@@ -146,7 +143,7 @@ func appSetup() error {
 		return err
 	}
 
-	err = ioutil.WriteFile(ghUsernameLocation, []byte(text), 0777)
+	err = ioutil.WriteFile(path.Join(usr.HomeDir, ghUsernameLocation), []byte(text), 0777)
 	if err != nil {
 		return err
 	}
@@ -158,11 +155,12 @@ func appSetup() error {
 		return err
 	}
 
-	err = ioutil.WriteFile(ghTokenLocation, []byte(text), 0777)
+	err = ioutil.WriteFile(path.Join(usr.HomeDir, ghTokenLocation), []byte(text), 0777)
 	if err != nil {
 		return err
 	}
 
+	fmt.Println("--------------------------------------")
 	return nil
 }
 
@@ -443,6 +441,25 @@ func hasOpenPRs(node map[string]interface{}) bool {
 }
 
 func main() {
+	valid, err := validateSetup()
+	if err != nil {
+		fmt.Println("Please run `ghportfolio setup`")
+		fmt.Println(err.Error())
+
+		err = appSetup()
+		if err != nil {
+			fmt.Printf("Error: failed to setup the CLI tool, sorry. %v", err.Error())
+			os.Exit(1)
+		}
+	}
+	if !valid {
+		err = appSetup()
+		if err != nil {
+			fmt.Printf("Error: failed to setup the CLI tool, sorry. %v", err.Error())
+			os.Exit(1)
+		}
+	}
+
 	token, err := getToken()
 	if err != nil {
 		fmt.Println(err.Error())
@@ -470,15 +487,6 @@ func main() {
 			Aliases: []string{"t"},
 			Usage:   "display overall interest in your profile/portfolio",
 			Action: func(c *cli.Context) error {
-				valid, err := validateSetup()
-				if err != nil {
-					fmt.Println(err.Error())
-					return nil
-				}
-				if !valid {
-					return nil
-				}
-
 				portfolioStats, err := driver.getPortfolioStats()
 				if err != nil {
 					fmt.Println("Failed to list projects")
@@ -498,15 +506,6 @@ func main() {
 				cli.BoolFlag{Name: "filter"},
 			},
 			Action: func(c *cli.Context) error {
-				valid, err := validateSetup()
-				if err != nil {
-					fmt.Println(err.Error())
-					return nil
-				}
-				if !valid {
-					return nil
-				}
-
 				projectsDetails, err := driver.getProjects(c.Bool("filter"))
 				if err != nil {
 					fmt.Println("Failed to list projects")
@@ -526,35 +525,12 @@ func main() {
 				cli.BoolFlag{Name: "chart"},
 			},
 			Action: func(c *cli.Context) error {
-				valid, err := validateSetup()
-				if err != nil {
-					fmt.Println(err.Error())
-					return nil
-				}
-				if !valid {
-					return nil
-				}
-
 				interest, err := driver.getInterest(c.Args().First(), c.Bool("chart"))
 				if err != nil {
 					fmt.Println("Failed to get project interest info")
 					fmt.Println(err.Error())
 				}
 				fmt.Println(interest)
-				return nil
-			},
-		},
-		{
-			Name:    "setup",
-			Aliases: []string{"i"},
-			Usage:   "setup configuration and local data files for this CLI tool",
-			Action: func(c *cli.Context) error {
-				fmt.Println("Setting up the ghportfolio tool...")
-				err := appSetup()
-				if err != nil {
-					fmt.Printf("Error: failed to setup the CLI tool, sorry. %v", err.Error())
-				}
-
 				return nil
 			},
 		},
