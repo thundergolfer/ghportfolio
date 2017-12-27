@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/buger/goterm"
 	"github.com/olekukonko/tablewriter"
 	"github.com/urfave/cli"
 )
@@ -41,6 +42,7 @@ type graphQLRequest struct {
 type App struct {
 	GhToken    string
 	GhUsername string
+	GhPageSize int
 }
 
 func getToken() (string, error) {
@@ -297,6 +299,78 @@ func (app *App) getInterest(project string, sparklineDisplay bool) (string, erro
 	return interestStr, nil
 }
 
+func (app *App) getInterestTotals(project string, sparklineDisplay bool) (string, error) {
+	repo := Repository{
+		FullName: app.GhUsername + "/" + project,
+	}
+	stargazers, err := app.Stargazers(repo)
+	if err != nil {
+		return "", err
+	}
+
+	interest := ""
+
+	min := time.Now()
+	max := time.Now()
+	// find range of chart
+	for _, stargazer := range stargazers {
+		var curr time.Time = stargazer.StarredAt
+		if curr.Before(min) {
+			min = stargazer.StarredAt
+		}
+	}
+
+	stars := map[string]int{}
+
+	// map all stargazers into day buckets
+	for _, stargazer := range stargazers {
+		dateString := timeToDateStr(stargazer.StarredAt)
+		stars[dateString] += 1
+	}
+
+	dayTotals := []float64{}
+	curr := max
+	// sum
+	for curr.After(min) {
+		dateString := timeToDateStr(curr)
+		dayTotals = append(dayTotals, float64(stars[dateString]))
+
+		curr = curr.AddDate(0, 0, -1)
+	}
+
+	// reverse the slice day the most recent date is last
+	for i, j := 0, len(dayTotals)-1; i < j; i, j = i+1, j-1 {
+		dayTotals[i], dayTotals[j] = dayTotals[j], dayTotals[i]
+	}
+
+	// accumulate
+	for i, _ := range dayTotals {
+		if i == 0 {
+			continue
+		}
+		dayTotals[i] += dayTotals[i-1]
+	}
+
+	cumulativeTotals := dayTotals
+	overallTotal := cumulativeTotals[len(cumulativeTotals)-1]
+
+	chart := goterm.NewLineChart(100, 20)
+	data := new(goterm.DataTable)
+	data.AddColumn("Time")
+	data.AddColumn("Stars")
+
+	for i := 0; i < len(cumulativeTotals); i++ {
+		data.AddRow(float64(i), cumulativeTotals[i])
+	}
+
+	goterm.Println()
+
+	interest += chart.Draw(data) + fmt.Sprintf(" current: %d", int(overallTotal))
+
+	return interest, nil
+
+}
+
 func timeToDateStr(t time.Time) string {
 	year, month, day := t.Date()
 	return fmt.Sprintf("%d%02d%02d", int(year), int(month), int(day))
@@ -474,6 +548,7 @@ func main() {
 	driver := App{
 		GhToken:    token,
 		GhUsername: username,
+		GhPageSize: 100,
 	}
 
 	app := cli.NewApp()
@@ -523,9 +598,15 @@ func main() {
 			Usage:   "display historical stats on stars, forks, and clones of a project (90 days max)",
 			Flags: []cli.Flag{
 				cli.BoolFlag{Name: "chart"},
+				cli.BoolFlag{Name: "totals"},
 			},
 			Action: func(c *cli.Context) error {
-				interest, err := driver.getInterest(c.Args().First(), c.Bool("chart"))
+				var interest string
+				if c.Bool("totals") {
+					interest, err = driver.getInterestTotals(c.Args().First(), c.Bool("chart"))
+				} else {
+					interest, err = driver.getInterest(c.Args().First(), c.Bool("chart"))
+				}
 				if err != nil {
 					fmt.Println("Failed to get project interest info")
 					fmt.Println(err.Error())

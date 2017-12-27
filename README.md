@@ -63,6 +63,34 @@ Forks:  ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
 Clones: ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁  min: 0 max: 0
 ```
 
+You can also use the `--totals` flag to get a cumulative total time-series of repo stars.
+
+```
+$ ./ghportfolio interest interview-with-python --totals
+
+92.4│
+    │                                                                                            •••
+    │                                                                        •••••••••••••••••••••
+    │                                                             ••••••••••••
+    │                                                       ••••••
+    │                                          ••••••••••••••
+    │                                     •••••
+    S                      ••••••••••••••••
+    t     ••••••••••••••••••
+    a    ••
+    r    •
+    s •••
+    │••
+    │•
+    │•
+    │•
+    │•
+    │•
+0   │-------------------------------------------Time------------------------------------------------
+     0.0                                                                                       484.0
+ current: 84
+ ```
+
 ## Install
 
 `go install github.com/thundergolfer/ghportfolio`
