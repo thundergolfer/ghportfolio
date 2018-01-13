@@ -5,3 +5,7 @@ import:
 - package: github.com/joliv/spark
   version: v1.0
 - package: github.com/olekukonko/tablewriter
+- package: github.com/buger/goterm
+- package: golang.org/x/sync
+  subpackages:
+  - errgroup

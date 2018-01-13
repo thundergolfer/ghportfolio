@@ -1,6 +1,8 @@
-hash: 72bf64fd7e1585e6edfd2f8c66a259599d9b1c31bac3e2ba652453fb9116b288
-updated: 2017-12-25T09:40:31.577951804+11:00
+hash: 0ce0fb5f31d2c6567fafa6085eb7a1f03ab76970233fe0a4dfd0c32cfad8aa28
+updated: 2018-01-13T14:31:38.751458844+11:00
 imports:
+- name: github.com/buger/goterm
+  version: ef0fa5b75d0fa2b31323463783a6e90353771116
 - name: github.com/joliv/spark
   version: e0eaf3444d05c395369fcea69986b5b62681328f
 - name: github.com/mattn/go-runewidth
@@ -9,4 +11,12 @@ imports:
   version: febf2d34b54a69ce7530036c7503b1c9fbfdf0bb
 - name: github.com/urfave/cli
   version: cfb38830724cc34fedffe9a2a29fb54fa9169cd1
+- name: golang.org/x/net
+  version: 1c05540f6879653db88113bc4a2b70aec4bd491f
+  subpackages:
+  - context
+- name: golang.org/x/sync
+  version: fd80eb99c8f653c847d294a001bdf2a3a6f768f5
+  subpackages:
+  - errgroup
 testImports: []
