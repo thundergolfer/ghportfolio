@@ -1,4 +1,4 @@
-# ghportfolio
+# ghportfolio [![BuildStatus](https://travis-ci.com/thundergolfer/ghportfolio.svg?token=yHGWQ42iK2BPk1FjaUMc&branch=master)](https://travis-ci.com/thundergolfer/ghportfolio)
 A minimal CLI in Golang for catching up on the activity and health of your public Github projects
 
 ## Why Use It?
