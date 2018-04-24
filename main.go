@@ -151,7 +151,7 @@ func appSetup() error {
 	}
 
 	reader = bufio.NewReader(os.Stdin)
-	fmt.Print("Enter a Github Access Token (goto 'Settings/Developer settings') with 'user', 'notifications', and 'push' permissions: ")
+	fmt.Print("Enter a Github Access Token (goto 'Settings/Developer settings/Personal Access Tokens') with 'user', 'notifications', and 'push' permissions: ")
 	text, err = reader.ReadString('\n')
 	if err != nil {
 		return err
