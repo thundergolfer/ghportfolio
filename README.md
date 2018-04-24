@@ -93,7 +93,9 @@ $ ./ghportfolio interest interview-with-python --totals
 
 ## Install
 
-`go install github.com/thundergolfer/ghportfolio`
+1. `go get github.com/thundergolfer/ghportfolio`
+2. `go install github.com/thundergolfer/ghportfolio`
+3. Run `ghportfolio` to start set-up process
 
 You can also download the relevant release for your OS from [`ghportfolio/releases`]( https://github.com/thundergolfer/ghportfolio/releases).
 
